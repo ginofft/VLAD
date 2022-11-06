@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import cv2
 
 def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
                 adaptive=True):
