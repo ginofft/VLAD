@@ -1,5 +1,11 @@
 from pathlib import Path
 from typing import Dict, List, Union, Optional
+from ImageDataset import ImageDataset
+from sklearn.cluster import KMeans
+import numpy as np
+import h5py
+from utils import *
+from Descriptors import compute_SIFT
 
 class VLAD:
   """
@@ -94,7 +100,7 @@ class VLAD:
       query_vlads[i] = self._calculate_VLAD(compute_SIFT(img))
 
     #TODO
-    with h5py.File(str(vlad_feature), 'r', libver = 'latest') as f:
+    with h5py.File(str(vlad_features), 'r', libver = 'latest') as f:
       db_names = []
       db_vlads = np.zeros([len(f.keys()), self.n_vocabs*self.k])
       for i, key in enumerate(f.keys()):
