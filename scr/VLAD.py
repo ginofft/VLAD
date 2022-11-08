@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Dict, List, Union, Optional
+
 class VLAD:
   """
     Parameters
