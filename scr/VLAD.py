@@ -7,6 +7,17 @@ import h5py
 from utils import *
 from Descriptors import compute_SIFT
 
+conf={
+   'SIFT': {
+        'output': 'feats-SIFT',
+        'preprocessing': {
+            'grayscale': False,
+            'resize_max': 1600,
+            'resize_force': False,
+        },
+    },
+}
+
 class VLAD:
   """
     Parameters
