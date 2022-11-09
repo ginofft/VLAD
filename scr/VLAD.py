@@ -39,7 +39,6 @@ class VLAD:
     self.k = k
     self.vocabs = None
     self.centers = None
-    self.tree = None
 
   def fit(self,
           conf,
@@ -63,6 +62,7 @@ class VLAD:
 
     features = [data['feature'] for data in dataset] 
     X = np.vstack(features)
+    del features
     self.vocabs = KMeans(n_clusters = self.n_vocabs, init='k-means++').fit(X)
     self.centers = self.vocabs.cluster_centers_
 
@@ -76,7 +76,6 @@ class VLAD:
             del fd[name]
           grp = fd.create_group(name)
           grp.create_dataset('vlad', data=v)
-          grp.create_dataset('feature', data=features[i])
         except OSError as error:
           if 'No space left on device' in error.args[0]:
             del grp, fd[name]
