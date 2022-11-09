@@ -65,6 +65,7 @@ class VLAD:
     del features
     self.vocabs = KMeans(n_clusters = self.n_vocabs, init='k-means++').fit(X)
     self.centers = self.vocabs.cluster_centers_
+    del X
 
     db_VLADs = np.zeros([len(dataset), self.n_vocabs*self.k])
     for i,data in enumerate(dataset):
