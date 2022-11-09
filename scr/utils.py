@@ -62,3 +62,12 @@ def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):
     db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
     plot_images(query_img, dpi=25)
     plot_images(db_imgs, dpi=25)
+
+def pairs_from_similarity_matrix(sim, n_results):
+  idx = np.argsort(sim, axis =1)
+  n_col = idx.shape[1]-1
+  pairs = []
+  for i,_ in enumerate(sim):
+    for j in range(n_results):
+      pairs.append((i, idx[i,n_col-j]))
+  return pairs
