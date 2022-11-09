@@ -1,8 +1,9 @@
 import torch
 from types import SimpleNamespace
 from pathlib import Path
-from utils import *
-from Descriptors import compute_SIFT
+
+from .utils import *
+from .Descriptors import compute_SIFT
 
 class ImageDataset(torch.utils.data.Dataset):
   default_conf = {

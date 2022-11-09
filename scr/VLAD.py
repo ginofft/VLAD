@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import Dict, List, Union, Optional
-from ImageDataset import ImageDataset
 from sklearn.cluster import KMeans
 import numpy as np
 import h5py
-from utils import *
-from Descriptors import compute_SIFT
 
+from .ImageDataset import ImageDataset
+from .utils import *
+from .Descriptors import compute_SIFT
 conf={
    'SIFT': {
         'output': 'feats-SIFT',
