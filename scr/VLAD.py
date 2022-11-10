@@ -8,6 +8,7 @@ from joblib import dump, load
 from .ImageDataset import ImageDataset
 from .utils import *
 from .Descriptors import compute_SIFT
+
 conf={
    'SIFT': {
         'output': 'feats-SIFT',
