@@ -45,8 +45,7 @@ class VLAD:
   def fit(self,
           conf,
           img_dir:Path, 
-          out_path: Optional[Path] = None,
-          overwrite:bool = False):
+          out_path: Optional[Path] = None):
     """This function build a visual words dictionary and compute database VLADs,
     and export them into a h5 file in 'out_path'
 
@@ -54,7 +53,7 @@ class VLAD:
     ----------------------------------------------------------------------------
     conf: local descripors configuration
     img_dir: database image directory
-    out_path: 
+    out_path: output path - storing vlads
     """
     #Setup dataset and output path
     dataset = ImageDataset(img_dir,conf)
@@ -89,6 +88,11 @@ class VLAD:
 
   def load(self,
            path):
+    """This fucntion load a pretrained vlad.
+    Args
+    ----------------------------------------------------------------------------------------
+    path: path to model
+    """
     self.vocabs = load(path)
     self.centers = self.vocabs.cluster_centers_
     self.n_vocabs = self.centers.shape[0]
@@ -99,6 +103,14 @@ class VLAD:
         vlad_features: Path, 
         out_path: Optional[Path] = None,
         n_result=10):
+    """This function return a .h5 file containing query and its similar images
+    Args
+    ----------------------------------------------------------------------------------------
+    query_dir: Path of query folder
+    vlad_features: path of .h5 file storing vlads
+    out_path: Path from which retrieval result would be stored
+    n_result: number of retrieved images
+    """
     #define output path
     if out_path is None:
       out_path = Path(query_dir, 'retrievals'+'.h5')
@@ -110,7 +122,7 @@ class VLAD:
     for i, img in enumerate(images):
       query_vlads[i] = self._calculate_VLAD(compute_SIFT(img))
 
-    #TODO
+    #saving vlad vectors into output path
     with h5py.File(str(vlad_features), 'r', libver = 'latest') as f:
       db_names = []
       db_vlads = np.zeros([len(f.keys()), self.n_vocabs*self.k])
@@ -119,17 +131,20 @@ class VLAD:
         db_names.append(key)
         db_vlads[i]= data['vlad'][()]
 
+    #create similarity matrix between db and query
     sim = np.einsum('id, jd -> ij', query_vlads, db_vlads)
     pairs = pairs_from_similarity_matrix(sim, n_result)
     pairs = [(query_names[i], db_names[j]) for i,j in pairs]
     retrieved_dict = {}
-
+    
+    #create retrieval list
     for query_name, db_name in pairs:
       if query_name in retrieved_dict.keys():
         retrieved_dict[query_name].append(db_name)
       else:
         retrieved_dict[query_name] = [db_name]
 
+    #save retrieval list
     with h5py.File(str(out_path), 'a', libver='latest') as f:
       try:
         for k,v in retrieved_dict.items():
@@ -143,6 +158,13 @@ class VLAD:
     return self
     
   def _calculate_VLAD(self, img_des):
+    """This function calculate Vlad of an image's descriptor,
+    given that a visual words vocabulary is already available.
+    
+    Args
+    --------------------------------------------------------------------------
+    img_des: [no. descriptors, length of each descriptor] - set of an image's descriptor
+    """
     v = np.zeros([self.n_vocabs, self.k])
     NNs = self.vocabs.predict(img_des)
     for i in range(self.n_vocabs):
@@ -154,6 +176,11 @@ class VLAD:
     return v
   
   def _save_vocabs(self, out_path:Optional[Path] = None):
+    """This function save a visual words vocabulary into out_path.
+    Args
+    ------------------------------------------------------------------
+    out_path: .joblib file where vocabs are saved.
+    """
     if out_path is None:
       out_path = Path(Path().absolute(), 'vocabs.joblib')
     dump(self.vocabs, out_path)

@@ -38,6 +38,9 @@ def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
     fig.tight_layout(pad=pad)
 
 def read_image(path: Path, grayscale=False):
+    """This function read an image from a path.
+    The read is perform using opencv.
+    """
     if grayscale:
         mode = cv2.IMREAD_GRAYSCALE
     else:
@@ -50,25 +53,33 @@ def read_image(path: Path, grayscale=False):
     return image
 
 def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):
-  with h5py.File(str(retrieval), 'r', libver='latest')as f:
-    query_refs = list(f.keys())
-    db_refs = []
-    for key in f.keys():
-      data = f[key][()]
-      data = [x.decode() for x in data]
-      db_refs.append(data)
+    """This function plots queries and retrieved images
+    Args
+    ----------------------------------------------------------------
+    retrieval: path of .h5 file storing retrievel results
+    query_dir: path of folder containing queries images
+    db_dir: path of folder containing database images
+    """
+    with h5py.File(str(retrieval), 'r', libver='latest')as f:
+        query_refs = list(f.keys())
+        db_refs = []
+        for key in f.keys():
+            data = f[key][()]
+            data = [x.decode() for x in data]
+            db_refs.append(data)
 
-  for i, query_ref in enumerate(query_refs):
-    query_img = [read_image(query_dir/ query_ref)]
-    db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
-    plot_images(query_img, dpi=25)
-    plot_images(db_imgs, dpi=25)
+    for i, query_ref in enumerate(query_refs):
+        query_img = [read_image(query_dir/ query_ref)]
+        db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
+        plot_images(query_img, dpi=25)
+        plot_images(db_imgs, dpi=25)
 
 def pairs_from_similarity_matrix(sim, n_results):
-  idx = np.argsort(sim, axis =1)
-  n_col = idx.shape[1]-1
-  pairs = []
-  for i,_ in enumerate(sim):
-    for j in range(n_results):
-      pairs.append((i, idx[i,n_col-j]))
-  return pairs
+    """This function create pair of similar indices from a similarity matrix"""
+    idx = np.argsort(sim, axis =1)
+    n_col = idx.shape[1]-1
+    pairs = []
+    for i,_ in enumerate(sim):
+        for j in range(n_results):
+            pairs.append((i, idx[i,n_col-j]))
+    return pairs
