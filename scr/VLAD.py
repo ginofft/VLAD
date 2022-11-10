@@ -3,6 +3,7 @@ from typing import Dict, List, Union, Optional
 from sklearn.cluster import KMeans
 import numpy as np
 import h5py
+from joblib import dump, load
 
 from .ImageDataset import ImageDataset
 from .utils import *
@@ -57,17 +58,18 @@ class VLAD:
     #Setup dataset and output path
     dataset = ImageDataset(img_dir,conf)
     if out_path is None:
-      out_path = Path(img_dir, conf['output']+'.h5')
+      out_path = Path(img_dir, conf['vlads']+'.h5')
     out_path.parent.mkdir(exist_ok=True, parents=True)
 
     features = [data['feature'] for data in dataset] 
-    X = np.vstack(features)
-    del features
-    self.vocabs = KMeans(n_clusters = self.n_vocabs, init='k-means++').fit(X)
-    self.centers = self.vocabs.cluster_centers_
-    del X
+    X = np.vstack(features) #stacking local descriptor
+    del features #save RAM
+    #find visual word dictionary
+    self.vocabs = KMeans(n_clusters = self.n_vocabs, init='k-means++').fit(X) 
+    self.centers = self.vocabs.cluster_centers_ 
+    del X #save RAM
 
-    db_VLADs = np.zeros([len(dataset), self.n_vocabs*self.k])
+    self._save_vocabs(out_path.parent / 'vocabs.joblib')
     for i,data in enumerate(dataset):
       name = dataset.names[i]
       v = self._calculate_VLAD(data['feature'])
@@ -75,24 +77,21 @@ class VLAD:
         try:
           if name in fd:
             del fd[name]
-          grp = fd.create_group(name)
-          grp.create_dataset('vlad', data=v)
+          #each image is saved in a different group for later
+          grp = fd.create_group(name) 
+          grp.create_dataset('vlad', data=v) 
         except OSError as error:
           if 'No space left on device' in error.args[0]:
             del grp, fd[name]
           raise error
     return self
-    
-  def _calculate_VLAD(self, img_des):
-    v = np.zeros([self.n_vocabs, self.k])
-    NNs = self.vocabs.predict(img_des)
-    for i in range(self.n_vocabs):
-      if np.sum(NNs==i)>0:
-        v[i] = np.sum(img_des[NNs==i, :]-self.centers[i], axis=0)
-    v = v.flatten()
-    v = np.sign(v)*np.sqrt(np.abs(v)) #power norm
-    v = v/np.sqrt(np.dot(v,v))        #L2 norm
-    return v
+
+  def load(self,
+           path):
+    self.vocabs = load(path)
+    self.centers = self.vocabs.cluster_centers_
+    self.n_vocabs = self.centers.shape[0]
+    self.k = self.centers.shape[1]
 
   def query(self,
         query_dir: Path,
@@ -141,3 +140,19 @@ class VLAD:
           pass
         raise error
     return self
+    
+  def _calculate_VLAD(self, img_des):
+    v = np.zeros([self.n_vocabs, self.k])
+    NNs = self.vocabs.predict(img_des)
+    for i in range(self.n_vocabs):
+      if np.sum(NNs==i)>0:
+        v[i] = np.sum(img_des[NNs==i, :]-self.centers[i], axis=0)
+    v = v.flatten()
+    v = np.sign(v)*np.sqrt(np.abs(v)) #power norm
+    v = v/np.sqrt(np.dot(v,v))        #L2 norm
+    return v
+  
+  def _save_vocabs(self, out_path:Optional[Path] = None):
+    if out_path is None:
+      out_path = Path(Path().absolute(), 'vocabs.joblib')
+    dump(self.vocabs, out_path)
