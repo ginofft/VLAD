@@ -1,0 +1,2 @@
+include scr/*.toml
+global-exclude scr/__pycache__
