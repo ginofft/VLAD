@@ -9,6 +9,7 @@ from .ImageDataset import ImageDataset
 from .utils import *
 from .Descriptors import compute_SIFT
 
+#was planning to create another config for SURF, but it isn't open sourced (yet!)
 conf={
    'SIFT': {
         'output': 'feats-SIFT',
@@ -103,7 +104,7 @@ class VLAD:
         vlad_features: Path, 
         out_path: Optional[Path] = None,
         n_result=10):
-    """This function return a .h5 file containing query and its similar images
+    """This function return a .h5 file containing query and it similar images
     Args
     ----------------------------------------------------------------------------------------
     query_dir: Path of query folder
