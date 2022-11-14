@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "VLAD_ginofft"
+name = "VLAD"
 version = "1.0.0"
 description = "VLAD (Vector of Locally Aggregated Descriptors) implementation using opencv's SIFT and sklearn's KMeans" 
 authors = [{name = "ginofft", email = "ntnghia.andrei@gmail.com"}]
@@ -18,3 +18,5 @@ dependencies = [
     "numpy"
 ]
 
+[tool.setuptools]
+py-modules = ["scr"]
