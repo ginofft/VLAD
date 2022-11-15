@@ -8,3 +8,41 @@ H. Jégou, F. Perronnin, M. Douze, J. Sánchez, P. Pérez and C. Schmid, "Aggreg
 ```
 pip install VLAD
 ```
+
+## How to use
+The demo code can be found in demo.ipynb, these are:
+
+Setting up database, query and output directories.
+```python
+from pathlib import Path
+database = Path('data') #folder storing database images
+query_dir = Path('query') #folder storing query images
+#output paths
+output = Path('output') #folder in which our result would be stored
+vlad_feature = output / 'vlads.h5' #storing all database's VLADs
+retrieval = output / 'retrieval.h5' #storing query's retrieval results
+```
+
+Training VLAD for a new database.
+```python
+from VLAD.vlad import VLAD
+vlad = VLAD() 
+vlad.fit(database, vlad_feature) 
+```
+
+You can also load a trained vocab list (not database vlads).
+```python
+vocab_path = 'output/vocabs.joblib'
+vlad.load(vocab_path)
+```
+
+Return queries.
+```python
+vlad.query(query_dir, vlad_feature, retrieval, n_result=40) 
+```
+
+Plotting
+```python
+from VLAD.utils import *
+plot_retrievals_images(retrieval, query_dir, database)
+```
