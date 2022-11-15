@@ -9,18 +9,6 @@ from .ImageDataset import ImageDataset
 from .utils import *
 from .Descriptors import compute_SIFT
 
-#was planning to create another config for SURF, but it isn't open sourced (yet!)
-conf={
-   'SIFT': {
-        'output': 'feats-SIFT',
-        'preprocessing': {
-            'grayscale': False,
-            'resize_max': 1600,
-            'resize_force': False,
-        },
-    },
-}
-
 class VLAD:
   """
     Parameters
@@ -37,6 +25,18 @@ class VLAD:
     centers: [n_vocabs, k] array
       the centroid of each visual words
   """
+
+    #was planning to create another config for SURF, but it isn't open sourced (yet!)
+  conf={
+    'SIFT': {
+          'output': 'feats-SIFT',
+          'preprocessing': {
+              'grayscale': False,
+              'resize_max': 1600,
+              'resize_force': False,
+          },
+      },
+  }
   def __init__(self, k=128, n_vocabs=16):
     self.n_vocabs = n_vocabs
     self.k = k
@@ -44,7 +44,6 @@ class VLAD:
     self.centers = None
 
   def fit(self,
-          conf,
           img_dir:Path, 
           out_path: Optional[Path] = None):
     """This function build a visual words dictionary and compute database VLADs,
@@ -57,9 +56,9 @@ class VLAD:
     out_path: output path - storing vlads
     """
     #Setup dataset and output path
-    dataset = ImageDataset(img_dir,conf)
+    dataset = ImageDataset(img_dir,self.conf)
     if out_path is None:
-      out_path = Path(img_dir, conf['vlads']+'.h5')
+      out_path = Path(img_dir, 'vlads'+'.h5')
     out_path.parent.mkdir(exist_ok=True, parents=True)
 
     features = [data['feature'] for data in dataset] 
@@ -117,13 +116,14 @@ class VLAD:
       out_path = Path(query_dir, 'retrievals'+'.h5')
     out_path.parent.mkdir(exist_ok=True, parents=True)
 
+    #create query vlads
     query_names = [str(ref.relative_to(query_dir)) for ref in query_dir.iterdir()]
     images = [read_image(query_dir/r) for r in query_names]
     query_vlads = np.zeros([len(images), self.n_vocabs*self.k])
     for i, img in enumerate(images):
       query_vlads[i] = self._calculate_VLAD(compute_SIFT(img))
 
-    #saving vlad vectors into output path
+    #taking database vlad outside for comparision
     with h5py.File(str(vlad_features), 'r', libver = 'latest') as f:
       db_names = []
       db_vlads = np.zeros([len(f.keys()), self.n_vocabs*self.k])
