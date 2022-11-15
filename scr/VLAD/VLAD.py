@@ -26,7 +26,7 @@ class VLAD:
       the centroid of each visual words
   """
 
-    #was planning to create another config for SURF, but it isn't open sourced (yet!)
+  #was planning to create another config for SURF, but it isn't open sourced (yet!)
   conf={
     'SIFT': {
           'output': 'feats-SIFT',
