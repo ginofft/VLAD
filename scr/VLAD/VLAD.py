@@ -37,6 +37,7 @@ class VLAD:
           },
       },
   }
+
   def __init__(self, k=128, n_vocabs=16):
     self.n_vocabs = n_vocabs
     self.k = k
@@ -64,6 +65,7 @@ class VLAD:
     features = [data['feature'] for data in dataset] 
     X = np.vstack(features) #stacking local descriptor
     del features #save RAM
+
     #find visual word dictionary
     self.vocabs = KMeans(n_clusters = self.n_vocabs, init='k-means++').fit(X) 
     self.centers = self.vocabs.cluster_centers_ 
@@ -111,11 +113,14 @@ class VLAD:
     out_path: Path from which retrieval result would be stored
     n_result: number of retrieved images
     """
-    #define output path
+    #define output path    
     if out_path is None:
       out_path = Path(query_dir, 'retrievals'+'.h5')
     out_path.parent.mkdir(exist_ok=True, parents=True)
 
+    if out_path.exists():
+      out_path.unlink()
+    
     #create query vlads
     query_names = [str(ref.relative_to(query_dir)) for ref in query_dir.iterdir()]
     images = [read_image(query_dir/r) for r in query_names]
@@ -149,8 +154,6 @@ class VLAD:
     with h5py.File(str(out_path), 'a', libver='latest') as f:
       try:
         for k,v in retrieved_dict.items():
-          if k in f:
-            del f[k]
           f[k] =v
       except OSError as error:
         if 'No space left on device' in error.args[0]:
@@ -163,7 +166,7 @@ class VLAD:
     given that a visual words vocabulary is already available.
     
     Args
-    --------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------
     img_des: [no. descriptors, length of each descriptor] - set of an image's descriptor
     """
     v = np.zeros([self.n_vocabs, self.k])
@@ -178,8 +181,9 @@ class VLAD:
   
   def _save_vocabs(self, out_path:Optional[Path] = None):
     """This function save a visual words vocabulary into out_path.
+    
     Args
-    ------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------
     out_path: .joblib file where vocabs are saved.
     """
     if out_path is None:
