@@ -3,6 +3,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 import h5py
+from typing import Dict, List, Union, Optional
+
 
 def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
                 adaptive=True):
@@ -52,7 +54,7 @@ def read_image(path: Path, grayscale=False):
         image = image[:, :, ::-1]  # BGR to RGB
     return image
 
-def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):
+def plot_retrievals_images(retrieval,db_dir: Path, query_dir:Optional[Path] = None):
     """This function plots queries and retrieved images
     Args
     ----------------------------------------------------------------
@@ -69,23 +71,24 @@ def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):
             db_refs.append(data)
 
     for i, query_ref in enumerate(query_refs):
-        query_img = [read_image(query_dir/ query_ref)]
-        db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
-        plot_images(query_img, dpi=25)
-        plot_images(db_imgs, dpi=25)
-
-def plot_retrival_image(retrieval, db_dir:Path):
-    with h5py.File(str(retrieval), 'r', libver='latest')as f:
-        query_refs = list(f.keys())
-        db_refs = []
-        for key in f.keys():
-            data = f[key][()]
-            data = [x.decode() for x in data]
-            db_refs.append(data)
-
-    for i, query_ref in enumerate(query_refs):
+        if query_dir is not None:
+            query_img = [read_image(query_dir/ query_ref)]
+            plot_images(query_img, dpi=25)
         db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
         plot_images(db_imgs, dpi=25)
+
+# def plot_retrival_image(retrieval, db_dir:Path):
+#     with h5py.File(str(retrieval), 'r', libver='latest')as f:
+#         query_refs = list(f.keys())
+#         db_refs = []
+#         for key in f.keys():
+#             data = f[key][()]
+#             data = [x.decode() for x in data]
+#             db_refs.append(data)
+
+#     for i, query_ref in enumerate(query_refs):
+#         db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
+#         plot_images(db_imgs, dpi=25)
 
 
 def pairs_from_similarity_matrix(sim, n_results):
