@@ -74,6 +74,20 @@ def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):
         plot_images(query_img, dpi=25)
         plot_images(db_imgs, dpi=25)
 
+def plot_retrival_image(retrieval, db_dir:Path):
+    with h5py.File(str(retrieval), 'r', libver='latest')as f:
+        query_refs = list(f.keys())
+        db_refs = []
+        for key in f.keys():
+            data = f[key][()]
+            data = [x.decode() for x in data]
+            db_refs.append(data)
+
+    for i, query_ref in enumerate(query_refs):
+        db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
+        plot_images(db_imgs, dpi=25)
+
+
 def pairs_from_similarity_matrix(sim, n_results):
     """This function create pair of similar indices from a similarity matrix"""
     idx = np.argsort(sim, axis =1)

@@ -161,6 +161,47 @@ class VLAD:
         raise error
     return self
     
+  def query_one_image(self,
+                      image,
+                      vlad_features:Path, 
+                      out_path: Optional[Path] = None,
+                      n_result = 10):
+    if out_path is None:
+      out_path = Path(__file__, 'retrievals'+'.h5')
+    out_path.parent.mkdir(exist_ok=True, parents=True)
+
+    if out_path.exists():
+      out_path.unlink()
+    
+    query_name = 'query'
+    query_vlad = self._calculate_VLAD(compute_SIFT(image))
+
+    #taking database vlad outside for comparision
+    with h5py.File(str(vlad_features), 'r', libver = 'latest') as f:
+      db_names = []
+      db_vlads = np.zeros([len(f.keys()), self.n_vocabs*self.k])
+      for i, key in enumerate(f.keys()):
+        data = f[key]
+        db_names.append(key)
+        db_vlads[i]= data['vlad'][()]
+
+    sim = np.einsum('d, id -> i', query_vlad, db_vlads)
+    db_indices = np.argsort(sim, axis = None)
+    retrival_names = [db_names[i] for i in db_indices[-n_result:]]
+    retrieved_dict = {}
+    retrieved_dict[query_name] = retrival_names
+    
+    #save retrieval list
+    with h5py.File(str(out_path), 'a', libver='latest') as f:
+      try:
+        for k,v in retrieved_dict.items():
+          f[k] =v
+      except OSError as error:
+        if 'No space left on device' in error.args[0]:
+          pass
+        raise error
+    return self
+
   def _calculate_VLAD(self, img_des):
     """This function calculate Vlad of an image's descriptor,
     given that a visual words vocabulary is already available.
