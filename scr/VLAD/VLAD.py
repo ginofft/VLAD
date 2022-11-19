@@ -67,7 +67,7 @@ class VLAD:
     del features #save RAM
 
     #find visual word dictionary
-    self.vocabs = KMeans(n_clusters = self.n_vocabs, init='k-means++').fit(X) 
+    self.vocabs = KMeans(n_clusters = self.n_vocabs, init='k-means++').fit(X) #replace this with something else. faiss ??
     self.centers = self.vocabs.cluster_centers_ 
     del X #save RAM
 
