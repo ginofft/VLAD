@@ -39,6 +39,14 @@ class VLAD:
   }
 
   def __init__(self, k=128, n_vocabs=16):
+    """
+    Variables
+    ---------------------------------------------------------------------
+    n_vocabs: int: number of visual words
+    k: int: dimension of input descriptor (128 in case of SIFT)
+    vocabs: sklearn.cluster.Kmeans: underlying descriptor space
+    centers: float matrix: center of each visual word.
+    """
     self.n_vocabs = n_vocabs
     self.k = k
     self.vocabs = None
@@ -166,6 +174,14 @@ class VLAD:
                       vlad_features:Path, 
                       out_path: Optional[Path] = None,
                       n_result = 10):
+    """This function return the retrieval of a single query image
+    Args
+    --------------------------------------------------------------------
+    image: image's tensor
+    vlad_features: .h5 file containing database vlads
+    out_path: retrieval result's path
+    n_result: number of retrieval
+    """
     if out_path is None:
       out_path = Path(__file__, 'retrievals'+'.h5')
     out_path.parent.mkdir(exist_ok=True, parents=True)
