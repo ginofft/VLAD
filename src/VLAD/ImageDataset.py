@@ -39,5 +39,6 @@ class ImageDataset(torch.utils.data.Dataset):
         'feature': feature
     }
     return data
+  
   def __len__(self):
     return len(self.names)
